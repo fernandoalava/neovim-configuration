@@ -1,18 +1,18 @@
 return {
 	{
-		"williamboman/mason.nvim",
-		config = function()
-			require("mason").setup()
-		end,
+		"mason-org/mason.nvim",
+		opts = {},
 	},
 	{
-		"williamboman/mason-lspconfig.nvim",
+		"mason-org/mason-lspconfig.nvim",
 		config = function()
 			require("mason-lspconfig").setup({
+				automatic_enable = false,
 				ensure_installed = {
 					"lua_ls",
 					"ts_ls",
 					"gopls",
+					"ocamllsp",
 				},
 			})
 		end,
@@ -27,7 +27,17 @@ return {
 				capabilities = capabilities,
 			})
 			lspconfig.ts_ls.setup({ capabilities = capabilities })
-      lspconfig.eslint.setup({capabilities = capabilities})
+			lspconfig.eslint.setup({ capabilities = capabilities })
+			lspconfig.ocamllsp.setup({
+				cmd = { "ocamllsp" },
+				filetypes = { "ocaml", "reason", "menhir", "ocaml.interface", "ocamllex" },
+				root_dir = function(fname)
+					-- If no dune-project or .git is found, use current directory
+					local util = require("lspconfig.util")
+					return util.root_pattern("dune-project", "*.opam", ".git")(fname) or util.path.dirname(fname)
+				end,
+				capabilities = capabilities,
+			})
 			-- lspconfig.gopls.setup({})
 			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
 			vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
