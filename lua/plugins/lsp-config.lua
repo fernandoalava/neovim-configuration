@@ -15,7 +15,7 @@ return {
           "lua_ls",
           "ts_ls",
           "gopls",
-          "ocamllsp",
+          --          "ocamllsp",
         },
       })
     end,
@@ -31,7 +31,7 @@ return {
       })
       lspconfig.ts_ls.setup({ capabilities = capabilities })
       lspconfig.eslint.setup({ capabilities = capabilities })
-      lspconfig.ocamllsp.setup({
+      --[[ lspconfig.ocamllsp.setup({
         cmd = { "ocamllsp" },
         filetypes = { "ocaml", "reason", "menhir", "ocaml.interface", "ocamllex" },
         root_dir = function(fname)
@@ -40,7 +40,7 @@ return {
           return util.root_pattern("dune-project", "*.opam", ".git")(fname) or util.path.dirname(fname)
         end,
         capabilities = capabilities,
-      })
+      }) ]]
       lspconfig.gopls.setup({
         capabilities = capabilities,
       })
