@@ -8,14 +8,41 @@ return {
 
     null_ls.setup({
       sources = {
+        -- Lua formatter
         null_ls.builtins.formatting.stylua,
-        null_ls.builtins.completion.spell,
-        null_ls.builtins.formatting.prettierd,
+
+        -- JavaScript/TypeScript/React formatter (prettierd is faster than prettier)
+        null_ls.builtins.formatting.prettierd.with({
+          filetypes = {
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact",
+            "css",
+            "scss",
+            "html",
+            "json",
+            "yaml",
+            "markdown",
+          },
+        }),
+
+        -- Go formatters
         null_ls.builtins.formatting.gofmt,
+        null_ls.builtins.formatting.goimports,
+
+        -- Go linter
         null_ls.builtins.diagnostics.golangci_lint,
-        require("none-ls.diagnostics.eslint"), -- requires none-ls-extras.nvim
+
+        -- ESLint diagnostics for JavaScript/TypeScript/React
+        require("none-ls.diagnostics.eslint"),
+
+        -- Spell check
+        null_ls.builtins.completion.spell,
       },
     })
-    vim.keymap.set('n', '<leader>gf', vim.lsp.buf.format, {})
-  end
+
+    -- Format on save
+    vim.keymap.set("n", "<leader>gf", vim.lsp.buf.format, { desc = "Format buffer" })
+  end,
 }

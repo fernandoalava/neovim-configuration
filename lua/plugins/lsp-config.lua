@@ -15,7 +15,7 @@ return {
           "lua_ls",
           "ts_ls",
           "gopls",
-          --          "ocamllsp",
+          "eslint",
         },
       })
     end,
@@ -26,24 +26,68 @@ return {
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
       local lspconfig = require("lspconfig")
+
+      -- Lua LSP
       lspconfig.lua_ls.setup({
         capabilities = capabilities,
       })
-      lspconfig.ts_ls.setup({ capabilities = capabilities })
-      lspconfig.eslint.setup({ capabilities = capabilities })
-      --[[ lspconfig.ocamllsp.setup({
-        cmd = { "ocamllsp" },
-        filetypes = { "ocaml", "reason", "menhir", "ocaml.interface", "ocamllex" },
-        root_dir = function(fname)
-          -- If no dune-project or .git is found, use current directory
-          local util = require("lspconfig.util")
-          return util.root_pattern("dune-project", "*.opam", ".git")(fname) or util.path.dirname(fname)
-        end,
+
+      -- TypeScript/JavaScript/React LSP
+      lspconfig.ts_ls.setup({
         capabilities = capabilities,
-      }) ]]
+        filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
+        settings = {
+          typescript = {
+            inlayHints = {
+              includeInlayParameterNameHints = "all",
+              includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+              includeInlayFunctionParameterTypeHints = true,
+              includeInlayVariableTypeHints = true,
+              includeInlayPropertyDeclarationTypeHints = true,
+              includeInlayFunctionLikeReturnTypeHints = true,
+              includeInlayEnumMemberValueHints = true,
+            },
+          },
+          javascript = {
+            inlayHints = {
+              includeInlayParameterNameHints = "all",
+              includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+              includeInlayFunctionParameterTypeHints = true,
+              includeInlayVariableTypeHints = true,
+              includeInlayPropertyDeclarationTypeHints = true,
+              includeInlayFunctionLikeReturnTypeHints = true,
+              includeInlayEnumMemberValueHints = true,
+            },
+          },
+        },
+      })
+
+      -- ESLint for linting
+      lspconfig.eslint.setup({
+        capabilities = capabilities,
+        on_attach = function(client, bufnr)
+          vim.api.nvim_create_autocmd("BufWritePre", {
+            buffer = bufnr,
+            command = "EslintFixAll",
+          })
+        end,
+      })
+
+      -- Go LSP
       lspconfig.gopls.setup({
         capabilities = capabilities,
+        settings = {
+          gopls = {
+            analyses = {
+              unusedparams = true,
+            },
+            staticcheck = true,
+            gofumpt = true,
+          },
+        },
       })
+
+      -- LSP keymaps
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, {})
