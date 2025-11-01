@@ -25,17 +25,32 @@ return {
     config = function()
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-      local lspconfig = require("lspconfig")
+      -- Common on_attach function for LSP keymaps
+      local on_attach = function(client, bufnr)
+        local opts = { buffer = bufnr }
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+        vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, opts)
+        vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, opts)
+        vim.keymap.set("n", "<leader>gi", vim.lsp.buf.implementation, opts)
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+      end
 
       -- Lua LSP
-      lspconfig.lua_ls.setup({
+      vim.lsp.config.lua_ls = {
+        cmd = { "lua-language-server" },
+        filetypes = { "lua" },
+        root_markers = { ".luarc.json", ".luarc.jsonc", ".luacheckrc", ".stylua.toml", "stylua.toml", "selene.toml", "selene.yml", ".git" },
         capabilities = capabilities,
-      })
+        on_attach = on_attach,
+      }
 
       -- TypeScript/JavaScript/React LSP
-      lspconfig.ts_ls.setup({
-        capabilities = capabilities,
+      vim.lsp.config.ts_ls = {
+        cmd = { "typescript-language-server", "--stdio" },
         filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
+        root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
+        capabilities = capabilities,
+        on_attach = on_attach,
         settings = {
           typescript = {
             inlayHints = {
@@ -60,22 +75,30 @@ return {
             },
           },
         },
-      })
+      }
 
       -- ESLint for linting
-      lspconfig.eslint.setup({
+      vim.lsp.config.eslint = {
+        cmd = { "vscode-eslint-language-server", "--stdio" },
+        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
+        root_markers = { ".eslintrc", ".eslintrc.js", ".eslintrc.cjs", ".eslintrc.yaml", ".eslintrc.yml", ".eslintrc.json", "package.json", ".git" },
         capabilities = capabilities,
         on_attach = function(client, bufnr)
+          on_attach(client, bufnr)
           vim.api.nvim_create_autocmd("BufWritePre", {
             buffer = bufnr,
             command = "EslintFixAll",
           })
         end,
-      })
+      }
 
       -- Go LSP
-      lspconfig.gopls.setup({
+      vim.lsp.config.gopls = {
+        cmd = { "gopls" },
+        filetypes = { "go", "gomod", "gowork", "gotmpl" },
+        root_markers = { "go.work", "go.mod", ".git" },
         capabilities = capabilities,
+        on_attach = on_attach,
         settings = {
           gopls = {
             analyses = {
@@ -85,14 +108,13 @@ return {
             gofumpt = true,
           },
         },
-      })
+      }
 
-      -- LSP keymaps
-      vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-      vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
-      vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, {})
-      vim.keymap.set("n", "<leader>gi", vim.lsp.buf.implementation, {})
-      vim.keymap.set({ "n" }, "<leader>ca", vim.lsp.buf.code_action, {})
+      -- Enable LSP servers
+      vim.lsp.enable("lua_ls")
+      vim.lsp.enable("ts_ls")
+      vim.lsp.enable("eslint")
+      vim.lsp.enable("gopls")
     end,
   },
 }
